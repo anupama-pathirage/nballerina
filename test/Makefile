@@ -16,6 +16,7 @@ bal_files = $(sort $(wildcard ../compiler/testSuite/[VPO]*.bal))
 LLVM_SUFFIX ?=-11
 CLANG ?= clang$(LLVM_SUFFIX)
 LLVM_LINK ?= llvm-link$(LLVM_SUFFIX)
+OPT ?= opt$(LLVM_SUFFIX)
 CFLAGS ?= -O2
 ll_files = $(wildcard out/ll/*.ll)
 expect_files = $(addsuffix .txt, $(addprefix out/expect/, $(basename $(notdir $(ll_files)))))
@@ -36,7 +37,7 @@ compile: out/compile.stamp
 out/compile.stamp: $(bal_files)
 	-rm -fr out/llnew
 	mkdir -p out/llnew
-	$(JAVA) -jar $(COMPILER_JAR) --outDir out/llnew $?
+	$(JAVA) -jar $(COMPILER_JAR) --gc statepoint-example --outDir out/llnew $?
 	mkdir -p out/ll
 	cd out/llnew; for f in *.ll; do cmp -s $$f ../ll/$$f || mv $$f ../ll/; done
 	rm -fr out/llnew
@@ -58,10 +59,17 @@ out/result/fail.txt: $(diff_files)
 out/result/%.diff: out/result/%.exe out/expect/%.txt
 	-./runcheck.sh $^ >$@
 
-out/result/%.exe: out/result/%.bc $(RT)
-	$(CLANG) $(CFLAGS) $< -o $@ $(RT) ../runtime/gc-roots/roots.a -lbacktrace
+out/result/%.exe: out/result/%_assembly.s $(RT)
+	$(CLANG) $(CFLAGS) $< -o $@ $(RT) ../runtime/gc-roots/roots.a -lbacktrace -lm
 
-out/result/%.bc: out/ll/%.ll $(RT_INLINE)
+out/result/%_assembly.s: out/result/%_opt.bc
+	$(CLANG) -O2 -S -o $@ $^
+	sed -i -e "s/__LLVM_StackMaps:/.globl __LLVM_StackMaps\n__LLVM_StackMaps:/" $@
+
+out/result/%_opt.bc: out/result/%_linked.bc
+	$(OPT) -O2 --rewrite-statepoints-for-gc -o $@ $^
+
+out/result/%_linked.bc: out/ll/%.ll $(RT_INLINE)
 	@mkdir -p out/result
 	$(LLVM_LINK) -o $@ $^
 
@@ -77,3 +85,5 @@ update:
 
 .PHONY: all test clean compile testll update
 .PRECIOUS: out/result/%.bc 
+.PRECIOUS: out/result/%_linked.bc 
+.PRECIOUS: out/result/%_linked.bc 
