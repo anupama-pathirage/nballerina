@@ -33,10 +33,10 @@ inlinert_%.bc: inlinert_unlinked_%.bc
 	$(LLVM_LINK) -o ./$@ $< ../$(BCLIB)
 
 inlinert_%: inlinert_%.bc
-	$(CLANG) $(CFLAGS) -o ./$@ $< ../$(LIB) ../gc-roots/roots.a -lbacktrace
+	$(CLANG) $(CFLAGS) -o ./$@ $< ../$(LIB) ../gc-roots/roots.a -lbacktrace -lm
 
 %: %.c
-	$(CLANG) $(CFLAGS) -o ./$@ $< ../$(LIB) ../gc-roots/roots.a -lbacktrace
+	$(CLANG) $(CFLAGS) -o ./$@ $< ../$(LIB) ../gc-roots/roots.a -lbacktrace -lm
 
 clean:
 	-rm -f $(TESTPROGS) $(TESTPROG_STAMPS) $(TESTPROG_PROF_RAW) $(TESTPROG_PROF)
