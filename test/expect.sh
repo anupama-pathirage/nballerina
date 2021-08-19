@@ -10,7 +10,12 @@ if test ! -f "$1"; then
 fi
 kind=`basename "$1" .bal | head -c 1`
 if test $kind == P; then
-    grep -n '// *@panic' "$1"  | sed -e 's/^\([1-9][0-9]*\):.*@panic *\(.*\)/panic: line \1: \2/' 
+    gckind=`basename "$1" .bal | head -c 3`
+    if test $gckind == Pgc; then
+        grep -n '// *@panic' "$1"  | sed -e 's/^\([1-9][0-9]*\):.*@panic *\(.*\)/panic: \2/'
+    else
+        grep -n '// *@panic' "$1"  | sed -e 's/^\([1-9][0-9]*\):.*@panic *\(.*\)/panic: line \1: \2/'
+    fi
 else
     sed -ne 's;^.* // *@output  *;;p' "$1" 
 fi | tr -d '\r' 

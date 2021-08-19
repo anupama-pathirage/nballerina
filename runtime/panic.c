@@ -9,7 +9,8 @@ const char *panicMessages[] = {
     "bad type cast",
     "stack overflow",
     "index out of bounds",
-    "list too long"
+    "list too long",
+    "heap is not enough"
 };
 
 NORETURN COLD void _bal_panic(Error err) {
