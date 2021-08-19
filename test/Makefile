@@ -60,7 +60,8 @@ out/result/%.diff: out/result/%.exe out/expect/%.txt
 	-./runcheck.sh $^ >$@
 
 out/result/%.exe: out/result/%_assembly.s $(RT)
-	$(CLANG) $(CFLAGS) $< -o $@ $(RT) ../runtime/gc-roots/roots.a -lbacktrace -lm
+	$(CLANG) $(CFLAGS) $< -o $@ $(RT) ../runtime/gc-roots/roots.a -I ../runtime/gc-roots/third-party-lib/libbacktrace \
+	-L ../runtime/gc-roots/third-party-lib/libbacktrace/.libs -lbacktrace -lm
 
 out/result/%_assembly.s: out/result/%_opt.bc
 	$(CLANG) -O2 -S -o $@ $^
@@ -87,3 +88,4 @@ update:
 .PRECIOUS: out/result/%.bc 
 .PRECIOUS: out/result/%_linked.bc 
 .PRECIOUS: out/result/%_linked.bc 
+.PRECIOUS: out/result/%_assembly.s
