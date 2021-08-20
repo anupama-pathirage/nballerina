@@ -15,6 +15,7 @@ bal_files = $(sort $(wildcard ../compiler/testSuite/[VPO]*.bal))
 # These are usd in phase 3
 LLVM_SUFFIX ?=-11
 CLANG ?= clang$(LLVM_SUFFIX)
+LLC ?= llc$(LLVM_SUFFIX)
 LLVM_LINK ?= llvm-link$(LLVM_SUFFIX)
 OPT ?= opt$(LLVM_SUFFIX)
 CFLAGS ?= -O2
@@ -64,7 +65,7 @@ out/result/%.exe: out/result/%_assembly.s $(RT)
 	-L ../runtime/gc-roots/third-party-lib/libbacktrace/.libs -lbacktrace -lm
 
 out/result/%_assembly.s: out/result/%_opt.bc
-	$(CLANG) -O2 -S -o $@ $^
+	$(LLC) -O2 -o $@ $^
 	sed -i -e "s/__LLVM_StackMaps:/.globl __LLVM_StackMaps\n__LLVM_StackMaps:/" $@
 
 out/result/%_opt.bc: out/result/%_linked.bc
